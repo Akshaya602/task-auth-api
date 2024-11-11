@@ -1,0 +1,49 @@
+
+org: ksrce 
+service: task-auth-api 
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  timeout: 7
+  iam: 
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:*
+          Resource: "arn:aws:dynamodb:${self:provider.region}:886436936280:table/UserInfo"
+  stage: dev
+  region: us-east-1 
+  environment:
+    USERS_TABLE: UserInfo 
+
+functions:
+  signUp:
+    handler: src/handler.signup
+    events:
+      - httpApi:
+          path: /signup
+          method: post
+  signIn:
+    handler: src/handler.signin
+    events:
+      - httpApi:
+          path: /signin
+          method: post
+  forgotPassword:
+    handler: src/handler.forgotPassword
+    events:
+      - httpApi:
+          path: /forgot-password
+          method: post
+  resetPassword:
+    handler: src/handler.resetPassword
+    events:
+      - httpApi:
+          path: /reset-password
+          method: post
+
+plugins:
+  - serverless-offline
+
