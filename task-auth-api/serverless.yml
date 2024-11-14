@@ -1,49 +1,43 @@
-
-org: ksrce 
-service: task-auth-api 
+service: task-auth-api
 
 provider:
   name: aws
-  runtime: nodejs20.x
-  timeout: 7
-  iam: 
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - dynamodb:*
-          Resource: "arn:aws:dynamodb:${self:provider.region}:886436936280:table/UserInfo"
-  stage: dev
-  region: us-east-1 
+  runtime: nodejs14.x
+  region: us-east-1
   environment:
-    USERS_TABLE: UserInfo 
+    DYNAMODB_TABLE: UserInfo
 
 functions:
-  signUp:
-    handler: src/handler.signup
+  auth:
+    handler: handler.handler
     events:
-      - httpApi:
-          path: /signup
+      - http:
+          path: signup
           method: post
-  signIn:
-    handler: src/handler.signin
-    events:
-      - httpApi:
-          path: /signin
+          cors: true
+      - http:
+          path: signin
           method: post
-  forgotPassword:
-    handler: src/handler.forgotPassword
-    events:
-      - httpApi:
-          path: /forgot-password
+          cors: true
+      - http:
+          path: forgot-password
           method: post
-  resetPassword:
-    handler: src/handler.resetPassword
-    events:
-      - httpApi:
-          path: /reset-password
+          cors: true
+      - http:
+          path: reset-password
           method: post
+          cors: true
 
-plugins:
-  - serverless-offline
-
+resources:
+  Resources:
+    UserInfoTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
